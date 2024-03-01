@@ -6,6 +6,7 @@ import tarfile, zipfile
 import tempfile
 import time
 from pathlib import Path
+from tqdm import tqdm
 
 # Create argument parser
 def create_parser():
@@ -77,7 +78,7 @@ def export_events(events, file_name, headers):
 
 def export_events_to_file(event_file_path, events, headers):
     with open(event_file_path, 'w') as file:
-        for entry in reversed(events):  # Reverse to process from oldest to newest
+        for entry in tqdm(reversed(events), total=len(events), desc="Exporting events from store", unit="events"): # Reverse to process from oldest to newest
             event_url = entry['links'][0]['uri']
             event_response = requests.get(event_url, headers=headers)
             if event_response.status_code == 200:
@@ -107,8 +108,12 @@ def import_event(stream_url, event, headers):
 def import_events(filename, stream_url, headers):
     success_count = 0
     failure_count = 0
-    with open(filename, 'r') as file:
-        for line in file:
+
+    with open(filename, 'r') as file: 
+        total_lines = sum(1 for line in file)
+        file.seek(0)
+
+        for line in tqdm(file, total=total_lines, desc="Importing events to store", unit="events"):
             try:
                 event = json.loads(line)
                 if import_event(stream_url, event, headers):
@@ -117,6 +122,7 @@ def import_events(filename, stream_url, headers):
                     failure_count +=1
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
+                failure_count +=1
 
     if failure_count > 0:
         print(f"{success_count} events successfully uploaded to EventDB, {failure_count} events failed to upload.")

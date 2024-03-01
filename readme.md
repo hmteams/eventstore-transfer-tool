@@ -13,11 +13,13 @@ This script is designed to facilitate the import of events to and the export of 
 
 - Python 3.6 or higher
 - `requests` library
+- `tqdm` library
 
-Before running the script, ensure you have the `requests` library installed. You can install it using pip:
+Before running the script, ensure you have the necessary libraries installed. You can install them using pip:
 
 ```bash
 pip install requests
+pip install tqdm
 ```
 
 ## Usage
